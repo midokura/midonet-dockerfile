@@ -1,20 +1,52 @@
-zookeeper:
-  image: midonet/zookeeper
-cassandra:
-  image: midonet/cassandra
-midolman:
-  image: midonet/midolman
-  links:
-  - "zookeeper:zk"
-  - "cassandra:cs"
+creds:
+  image: midonet/creds
+  volumes:
+  - "/var/run/data:/var/run/data"
+mariadb:
+  image: midonet/mariadb
   privileged: true
-api:
-  image: midonet/midonet-api
-  links:
-  - "zookeeper:zk"
+  volumes_from:
+  - creds
+  volumes:
+  - "/var/lib/mysql:/var/lib/mysql"
   ports:
-  - "8080:8080"
-cli:
-  image: midonet/midonet-cli
-  links:
-  - "api:api"
+  - "3306:3306"
+rabbitmq:
+  image: dockerfile/rabbitmq
+  ports:
+  - "5672:5672"
+  - "15672:15672"
+# keystone:
+#   image: midonet/keystone
+#   volumes_from:
+#   - creds
+#   links:
+#   - "mariadb:db"
+#   ports:
+#   - "5000:5000"
+#   - "35357:35357"
+# glance:
+#   image: midonet/glance
+#   volumes_from:
+#   - creds
+#   links:
+#   - "mariadb:db"
+#   - "keystone:keystone"
+#   ports:
+#   - "9292:9292"
+#   - "9191:9191"
+# nova: 
+#   image: midonet/nova
+#   privileged: true
+#   volumes_from:
+#   - creds
+#   links:
+#   - "mariadb:db"
+#   - "keystone:keystone"
+#   - "glance:glance"
+#   - "rabbitmq:rabbitmq"
+#   ports:
+#   - "8773:8773"
+#   - "8775:8775"
+#   volumes:
+#   - "/var/log/os/nova:/var/log/nova"

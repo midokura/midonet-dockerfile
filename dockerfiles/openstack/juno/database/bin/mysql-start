@@ -1,0 +1,26 @@
+#!/bin/bash
+
+IP=$(ip -4 a show dev eth0 | grep inet | awk '{print $2;}' | cut -d'/' -f1)
+sed -i -e "s/<bind_address>/"$IP"/g" /etc/mysql/my.cnf
+
+source /var/run/data/creds
+
+mysql_install_db --user=mysql --ldata=/var/lib/mysql/
+mysqladmin -u root password $MYSQL_ROOT
+
+/bin/bash /usr/bin/mysqld_safe --datadir='/var/lib/mysql/'
+
+mysql -uroot -p$MYSQL_ROOT -e "CREATE DATABASE keystone;";
+mysql -uroot -p$MYSQL_ROOT -e "GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
+  IDENTIFIED BY '$MYSQL_KEYSTONE';"
+mysql -uroot -p$MYSQL_ROOT -e "CREATE DATABASE nova;";
+mysql -uroot -p$MYSQL_ROOT -e "GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%' \
+  IDENTIFIED BY '$MYSQL_NOVA';"
+mysql -uroot -p$MYSQL_ROOT -e "CREATE DATABASE glance;";
+mysql -uroot -p$MYSQL_ROOT -e "GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' \
+  IDENTIFIED BY '$MYSQL_GLANCE';"
+mysql -uroot -p$MYSQL_ROOT -e "CREATE DATABASE neutron;";
+mysql -uroot -p$MYSQL_ROOT -e "GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' \
+  IDENTIFIED BY '$MYSQL_NEUTRON';"
+service mysql stop
+
